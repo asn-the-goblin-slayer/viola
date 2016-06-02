@@ -30,6 +30,11 @@ class RoomMember(object):
 # Rekey room every N minutes
 ROOM_REKEY_PERIOD = 10 * 60 * 1000 # 10 minutes (in milliseconds)
 
+ROOM_REKEY_CHECK_DELAY = 2 * 60 * 1000 # 2 minutes (in milliseconds)
+ROOM_REKEY_CHECK_PERIOD = ROOM_REKEY_PERIOD + ROOM_REKEY_CHECK_DELAY
+
+REKEY_CHECKS = {}
+
 # Max number of room message keys we should cache
 MAX_CACHED_ROOM_MESSAGE_KEYS = 10
 
@@ -38,6 +43,23 @@ def schedule_periodic_room_rekey(channel, server):
     weechat.hook_timer(ROOM_REKEY_PERIOD, 0, 0,
                        "rekey_timer_cb",
                        channel + ',' + server)
+
+def schedule_rekey_check(channel, server):
+    util.debug("Scheduling rekey check on %s.#%s!" % (server, channel))
+    chan_serv = channel + ',' + server
+    timer = weechat.hook_timer(ROOM_REKEY_CHECK_PERIOD, 0, 1,
+                       "rekey_check_timer_cb",
+                       chan_serv)
+    REKEY_CHECKS[chan_serv] = timer
+
+def rekey_check_ok(channel, server):
+    util.debug("Rekey check ok on %s!" % channel)
+    chan_serv = channel + ',' + server
+    timer = REKEY_CHECKS.pop(chan_serv, None)
+    if timer:
+        weechat.unhook(timer)
+
+    schedule_rekey_check(channel, server)
 
 class FluteRoom(object):
     """Represents a Flute room"""
