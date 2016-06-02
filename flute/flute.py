@@ -171,6 +171,7 @@ def handle_key_transport_packet(packet_payload, parsed, server):
     # XXX careful not to double-add the captain in case of rekey
     flute_room.add_member(sender, captain_identity_pubkey, captain_transport_pubkey)
 
+    room.rekey_check_ok(channel, server)
     # Print some messages to the user
     buf = util.flute_channel_msg(flute_room.buf,
                                  "Got room key for %s from captain %s (friend name: %s)!" % (channel, sender, captain_friend_name))

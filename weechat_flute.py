@@ -119,6 +119,15 @@ def rekey_timer_cb(data, remaining_calls):
     flute.rekey_room(data)
     return weechat.WEECHAT_RC_OK
 
+def rekey_check_timer_cb(data, remaining_calls):
+    splitted_data = data.split(',')
+    channel = splitted_data[0]
+    server = splitted_data[1]
+    buffr = weechat.buffer_search("irc", server + "." + channel)
+    msg = ("You haven't received a key for room %s in a while"
+                         ", something fishy might be happening!!") % channel
+    weechat.prnt(buffr, otrlib.colorize(msg, "red"))
+    return weechat.WEECHAT_RC_OK
 ################################################################################
 
 # Register the plugin with Weechat.
